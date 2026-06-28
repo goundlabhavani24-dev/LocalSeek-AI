@@ -41,3 +41,4 @@ security:
     - bandit -r . -x tests
     - pip-audit
     - vulture .
+    - pre-commit run --all-files

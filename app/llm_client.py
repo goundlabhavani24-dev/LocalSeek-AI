@@ -1,5 +1,6 @@
 import json
 import requests
+from typing import Any
 
 
 class OllamaClient:
@@ -83,7 +84,7 @@ Document Text:
 Return ONLY the JSON object. Do not include any markdown fences or conversational text.
 """
 
-        payload = {
+        payload: dict[str, Any] = {
             "model": self.model,
             "prompt": prompt,
             "format": "json",
