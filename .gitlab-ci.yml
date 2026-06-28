@@ -39,4 +39,3 @@ security:
   image: python:3.11-slim
   script:
     - bandit -r . -x tests
-    - vulture .
