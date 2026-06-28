@@ -13,6 +13,7 @@ from app.pdf_parser import extract_text_from_pdf
 from app.ocr_engine import extract_text_from_image
 from app.llm_client import OllamaClient
 from database.db_manager import DBManager
+from app.pipeline import DocumentPipeline
 
 @pytest.fixture
 def temp_pdf():
@@ -167,3 +168,27 @@ def test_llm_client_prompt():
     assert "tags" in res
     assert "summary" in res
     assert "metadata" in res
+
+def test_pipeline(temp_pdf):
+    fd, db_path = tempfile.mkstemp(suffix=".db")
+    os.close(fd)
+    
+    try:
+        pipeline = DocumentPipeline(db_path=db_path)
+        
+        # Test folder scanning
+        folder = os.path.dirname(temp_pdf)
+        files = pipeline.scan_folder(folder)
+        assert temp_pdf in files
+        
+        # Test processing file
+        res = pipeline.process_file(temp_pdf)
+        assert res["status"] in ("indexed", "cached")
+        assert res["id"] is not None
+        
+        # Check that it's cached on the second run (for performance)
+        res_second = pipeline.process_file(temp_pdf)
+        assert res_second["status"] == "cached"
+    finally:
+        if os.path.exists(db_path):
+            os.remove(db_path)

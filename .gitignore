@@ -54,3 +54,4 @@ Thumbs.db
 # Project specific
 app/data/
 **/__pycache__/
+builds/
