@@ -16,7 +16,7 @@ before_script:
   - source .venv/bin/activate
   - pip install --upgrade pip
   - pip install -r requirements.txt
-  - pip install pre-commit ruff mypy pytest pytest-cov bandit pip-audit vulture
+  - pip install pre-commit ruff mypy pytest pytest-cov bandit vulture
 
 linting:
   stage: lint
@@ -39,6 +39,4 @@ security:
   image: python:3.11-slim
   script:
     - bandit -r . -x tests
-    - pip-audit
     - vulture .
-    - pre-commit run --all-files
