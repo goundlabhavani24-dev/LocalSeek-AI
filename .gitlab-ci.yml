@@ -1,6 +1,7 @@
 stages:
   - lint
   - test
+  - security
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
@@ -11,12 +12,11 @@ cache:
     - .venv/
 
 before_script:
-  - python3 -v || python -v
   - python3 -m venv .venv || python -m venv .venv
   - source .venv/bin/activate
   - pip install --upgrade pip
-  - pip install ruff mypy pytest
-  - if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+  - pip install -r requirements.txt
+  - pip install pre-commit ruff mypy pytest pytest-cov bandit pip-audit vulture
 
 linting:
   stage: lint
@@ -24,18 +24,20 @@ linting:
   script:
     - ruff check .
     - ruff format --check .
-  allow_failure: false
-
-typecheck:
-  stage: lint
-  image: python:3.11-slim
-  script:
     - mypy . --ignore-missing-imports
-  allow_failure: false
+    - pre-commit run --all-files
 
 testing:
   stage: test
   image: python:3.11-slim
   script:
-    - if [ -d tests ] && [ "$(ls -A tests)" ]; then pytest; else echo "No tests defined yet"; fi
-  allow_failure: false
+    - pytest
+    - pytest --cov=. --cov-report=term
+
+security:
+  stage: security
+  image: python:3.11-slim
+  script:
+    - bandit -r . -x tests
+    - pip-audit
+    - vulture .
