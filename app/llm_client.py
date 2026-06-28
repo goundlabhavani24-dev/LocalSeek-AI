@@ -1,13 +1,14 @@
 import json
 import requests
-import os
+
 
 class OllamaClient:
     """
     Client wrapper for local Ollama (Llama 3.2) inference on CPU.
     """
+
     def __init__(self, host: str = "http://localhost:11434", model: str = "llama3.2"):
-        self.host = host.rstrip('/')
+        self.host = host.rstrip("/")
         self.model = model
 
     def check_connection(self) -> bool:
@@ -32,11 +33,13 @@ class OllamaClient:
                 # Check direct match or match without tag (e.g., 'llama3.2:latest' -> 'llama3.2')
                 if any(self.model in m or m in self.model for m in installed_models):
                     return True
-                
+
                 # Try pulling model
                 print(f"Model {self.model} not found locally. Pulling from Ollama...")
                 pull_url = f"{self.host}/api/pull"
-                pull_response = requests.post(pull_url, json={"name": self.model}, timeout=600)
+                pull_response = requests.post(
+                    pull_url, json={"name": self.model}, timeout=600
+                )
                 return pull_response.status_code == 200
             return False
         except Exception as e:
@@ -46,10 +49,10 @@ class OllamaClient:
     def extract_metadata(self, document_text: str) -> dict:
         """
         Prompt Llama 3.2 to extract structured JSON metadata from the raw text.
-        
+
         Args:
             document_text (str): The raw text extracted from a PDF or image.
-            
+
         Returns:
             dict: The structured metadata dictionary matching the specification.
         """
@@ -87,7 +90,7 @@ Return ONLY the JSON object. Do not include any markdown fences or conversationa
             "stream": False,
             "options": {
                 "temperature": 0.2  # Keep it deterministic
-            }
+            },
         }
 
         fallback_data = {
@@ -95,28 +98,36 @@ Return ONLY the JSON object. Do not include any markdown fences or conversationa
             "title": "Untitled Document",
             "tags": ["unclassified"],
             "summary": "Document content could not be parsed by local LLM.",
-            "metadata": {}
+            "metadata": {},
         }
 
         if not self.check_connection():
             print("Ollama connection failed. Returning default metadata.")
-            fallback_data["summary"] = "Ollama service is not running locally. Please start Ollama."
+            fallback_data["summary"] = (
+                "Ollama service is not running locally. Please start Ollama."
+            )
             return fallback_data
 
         try:
-            response = requests.post(f"{self.host}/api/generate", json=payload, timeout=90)
+            response = requests.post(
+                f"{self.host}/api/generate", json=payload, timeout=90
+            )
             if response.status_code == 200:
                 result = response.json()
                 raw_response = result.get("response", "").strip()
                 extracted_json = json.loads(raw_response)
-                
+
                 # Validate schema structure and apply standard defaults
                 validated_json = {
-                    "document_type": str(extracted_json.get("document_type", "Other")).capitalize(),
+                    "document_type": str(
+                        extracted_json.get("document_type", "Other")
+                    ).capitalize(),
                     "title": str(extracted_json.get("title", "Untitled Document")),
-                    "tags": [str(t).lower() for t in extracted_json.get("tags", []) if t],
+                    "tags": [
+                        str(t).lower() for t in extracted_json.get("tags", []) if t
+                    ],
                     "summary": str(extracted_json.get("summary", "")),
-                    "metadata": dict(extracted_json.get("metadata", {}))
+                    "metadata": dict(extracted_json.get("metadata", {})),
                 }
                 return validated_json
             else:

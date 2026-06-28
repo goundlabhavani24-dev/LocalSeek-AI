@@ -3,7 +3,6 @@ from database.db_manager import DBManager
 
 
 def show():
-
     st.title("📊 Dashboard")
 
     db = DBManager()
@@ -12,21 +11,13 @@ def show():
 
     total = len(documents)
 
-    notes = len(
-        [d for d in documents if d["document_type"] == "Notes"]
-    )
+    notes = len([d for d in documents if d["document_type"] == "Notes"])
 
-    invoices = len(
-        [d for d in documents if d["document_type"] == "Invoice"]
-    )
+    invoices = len([d for d in documents if d["document_type"] == "Invoice"])
 
-    medical = len(
-        [d for d in documents if d["document_type"] == "Medical"]
-    )
+    medical = len([d for d in documents if d["document_type"] == "Medical"])
 
-    certificates = len(
-        [d for d in documents if d["document_type"] == "Certificate"]
-    )
+    certificates = len([d for d in documents if d["document_type"] == "Certificate"])
 
     c1, c2, c3, c4, c5 = st.columns(5)
 
@@ -44,14 +35,9 @@ def show():
         st.info("No documents indexed yet.")
 
     else:
-
         for doc in documents:
-
-            st.write(
-                f"**{doc['title']}** • {doc['document_type']}"
-            )
+            st.write(f"**{doc['title']}** • {doc['document_type']}")
             st.divider()
 
-st.caption(
-    "LocalSeek AI • CPU-First Hackathon • Offline AI • Llama 3.2"
-)
+
+st.caption("LocalSeek AI • CPU-First Hackathon • Offline AI • Llama 3.2")

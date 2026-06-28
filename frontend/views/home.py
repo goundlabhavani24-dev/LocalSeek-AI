@@ -1,7 +1,7 @@
 import streamlit as st
 
-def show():
 
+def show():
     st.title("🔍 LocalSeek AI")
 
     st.subheader("Offline AI-Powered Document Intelligence")
@@ -22,6 +22,7 @@ searchable knowledge using completely offline AI.
     st.divider()
 
     from database.db_manager import DBManager
+
     db = DBManager()
     total_docs = len(db.search_documents(""))
 
@@ -61,6 +62,5 @@ searchable knowledge using completely offline AI.
 """)
     st.divider()
 
-st.caption(
-    "LocalSeek AI • CPU-First Hackathon • Offline AI • Llama 3.2"
-)
+
+st.caption("LocalSeek AI • CPU-First Hackathon • Offline AI • Llama 3.2")
