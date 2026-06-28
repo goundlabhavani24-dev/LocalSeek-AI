@@ -2,7 +2,8 @@
 
 ## Offline AI-Powered Document Intelligence & Semantic Search
 
----
+##LIVE DEMO 
+http://localhost:8501/
 
 ## Description
 
