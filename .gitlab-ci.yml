@@ -38,4 +38,4 @@ security:
   stage: security
   image: python:3.11-slim
   script:
-    - bandit -r . -x tests
+    - bandit -r . -x tests,.venv,builds
