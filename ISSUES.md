@@ -8,22 +8,22 @@ This document lists the 10 project issues created in GitLab to track progress du
 
 | # | Issue Title | Assignee | Estimate | Due Date | Status |
 | :--- | :--- | :--- | :---: | :---: | :---: |
-| 1 | **Initialize repository & project structure** | Dimple Kurella (`@dimplekurella`) | 30 min | 2026-06-28 | Pending |
-| 2 | **Write README and SPEC** | Dimple Kurella (`@dimplekurella`) | 45 min | 2026-06-28 | Pending |
-| 3 | **Build Streamlit UI** | Dimple Kurella (`@dimplekurella`) | 2 hours | 2026-06-28 | Pending |
-| 4 | **Integrate Ollama (Llama 3.2)** | Dimple Kurella (`@dimplekurella`) | 1.5 hours | 2026-06-28 | Pending |
-| 5 | **Implement PDF text extraction** | Bhavani (`@Bhavani25`) | 1 hour | 2026-06-28 | Pending |
-| 6 | **Implement OCR for images** | Bhavani (`@Bhavani25`) | 1 hour | 2026-06-28 | Pending |
-| 7 | **Create document classification & JSON extraction** | Bhavani (`@Bhavani25`) | 2 hours | 2026-06-28 | Pending |
-| 8 | **Design SQLite database & search** | Bhavani (`@Bhavani25`) | 1.5 hours | 2026-06-28 | Pending |
-| 9 | **Integration, testing & bug fixes** | Both (`@dimplekurella`, `@Bhavani25`) | 1 hour | 2026-06-28 | Pending |
-| 10 | **Documentation, CI checks & final demo** | Both (`@dimplekurella`, `@Bhavani25`) | 1 hour | 2026-06-28 | Pending |
+| 1 | **Repository Setup** | Dimple Kurella (`@dimplekurella`) | 30 min | 2026-06-28 | Pending |
+| 2 | **Create Streamlit UI** | Dimple Kurella (`@dimplekurella`) | 2 hours | 2026-06-28 | Pending |
+| 3 | **Implement PDF Text Extraction** | Bhavani (`@Bhavani25`) | 1 hour | 2026-06-28 | Pending |
+| 4 | **Implement OCR for Images** | Bhavani (`@Bhavani25`) | 1 hour | 2026-06-28 | Pending |
+| 5 | **Integrate Ollama (Llama 3.2)** | Dimple Kurella (`@dimplekurella`) | 1.5 hours | 2026-06-28 | Pending |
+| 6 | **Design SQLite Database** | Bhavani (`@Bhavani25`) | 1 hour | 2026-06-28 | Pending |
+| 7 | **Generate Structured JSON** | Bhavani (`@Bhavani25`) | 1.5 hours | 2026-06-28 | Pending |
+| 8 | **Implement Search Functionality** | Dimple Kurella (`@dimplekurella`) | 1 hour | 2026-06-28 | Pending |
+| 9 | **Testing & Bug Fixes** | Both (`@dimplekurella`, `@Bhavani25`) | 1 hour | 2026-06-28 | Pending |
+| 10 | **Final Integration & Documentation** | Both (`@dimplekurella`, `@Bhavani25`) | 1 hour | 2026-06-28 | Pending |
 
 ---
 
 ## Detailed Issue Descriptions
 
-### 1. Initialize repository & project structure
+### 1. Repository Setup
 * **Assignee:** Dimple Kurella (`@dimplekurella`)
 * **Estimate:** 30 minutes (`/estimate 30m`)
 * **Due Date:** 2026-06-28 (`/due 2026-06-28`)
@@ -31,13 +31,7 @@ This document lists the 10 project issues created in GitLab to track progress du
   * Directories: `app/`, `database/`, `models/`, `docs/`, `tests/`
   * Files: `LICENSE`, `CONTRIBUTING.md`, `CHANGELOG.md`, `.gitignore`, `.gitlab-ci.yml`
 
-### 2. Write README and SPEC
-* **Assignee:** Dimple Kurella (`@dimplekurella`)
-* **Estimate:** 45 minutes (`/estimate 45m`)
-* **Due Date:** 2026-06-28 (`/due 2026-06-28`)
-* **Description:** Create documentation for Phase 1 detailing specifications, objectives, architecture flow, and usage guides in `README.md` and `SPEC.md`.
-
-### 3. Build Streamlit UI
+### 2. Create Streamlit UI
 * **Assignee:** Dimple Kurella (`@dimplekurella`)
 * **Estimate:** 2 hours (`/estimate 2h`)
 * **Due Date:** 2026-06-28 (`/due 2026-06-28`)
@@ -47,7 +41,19 @@ This document lists the 10 project issues created in GitLab to track progress du
   * Search input bar with filters.
   * Extracted metadata display (card-based view) and file link download.
 
-### 4. Integrate Ollama (Llama 3.2)
+### 3. Implement PDF Text Extraction
+* **Assignee:** Bhavani (`@Bhavani25`)
+* **Estimate:** 1 hour (`/estimate 1h`)
+* **Due Date:** 2026-06-28 (`/due 2026-06-28`)
+* **Description:** Write python parsing logic using `PyMuPDF` to read local PDF files and extract raw text for LLM ingestion. Handle multi-page documents and exceptions.
+
+### 4. Implement OCR for Images
+* **Assignee:** Bhavani (`@Bhavani25`)
+* **Estimate:** 1 hour (`/estimate 1h`)
+* **Due Date:** 2026-06-28 (`/due 2026-06-28`)
+* **Description:** Integrate `Tesseract OCR` to extract text from images (PNG, JPG, scanned PDFs). Setup pre-processing steps (grayscale, binarization) to optimize accuracy on CPU.
+
+### 5. Integrate Ollama (Llama 3.2)
 * **Assignee:** Dimple Kurella (`@dimplekurella`)
 * **Estimate:** 1.5 hours (`/estimate 1h 30m`)
 * **Due Date:** 2026-06-28 (`/due 2026-06-28`)
@@ -56,37 +62,30 @@ This document lists the 10 project issues created in GitLab to track progress du
   * Create prompt templates for document analysis and information extraction.
   * Set up structured text outputs matching our JSON metadata schema.
 
-### 5. Implement PDF text extraction
+### 6. Design SQLite Database
 * **Assignee:** Bhavani (`@Bhavani25`)
 * **Estimate:** 1 hour (`/estimate 1h`)
 * **Due Date:** 2026-06-28 (`/due 2026-06-28`)
-* **Description:** Write python parsing logic using `PyMuPDF` to read local PDF files and extract raw text for LLM ingestion. Handle multi-page documents and exceptions.
+* **Description:** Design database:
+  * Define table schema for processed documents and metadata.
+  * Write SQLite helper functions for insertion and retrieval.
 
-### 6. Implement OCR for images
+### 7. Generate Structured JSON
 * **Assignee:** Bhavani (`@Bhavani25`)
-* **Estimate:** 1 hour (`/estimate 1h`)
-* **Due Date:** 2026-06-28 (`/due 2026-06-28`)
-* **Description:** Integrate `Tesseract OCR` to extract text from images (PNG, JPG, scanned PDFs). Setup pre-processing steps (grayscale, binarization) to optimize accuracy on CPU.
-
-### 7. Create document classification & JSON extraction
-* **Assignee:** Bhavani (`@Bhavani25`)
-* **Estimate:** 2 hours (`/estimate 2h`)
+* **Estimate:** 1.5 hours (`/estimate 1h 30m`)
 * **Due Date:** 2026-06-28 (`/due 2026-06-28`)
 * **Description:** Build extraction pipeline:
   * Format extracted text to feed to Llama 3.2.
   * Enforce strict JSON output parsing (document type, title, tags, summary, etc.).
   * Validate JSON output against standard schema.
 
-### 8. Design SQLite database & search
-* **Assignee:** Bhavani (`@Bhavani25`)
-* **Estimate:** 1.5 hours (`/estimate 1h 30m`)
+### 8. Implement Search Functionality
+* **Assignee:** Dimple Kurella (`@dimplekurella`)
+* **Estimate:** 1 hour (`/estimate 1h`)
 * **Due Date:** 2026-06-28 (`/due 2026-06-28`)
-* **Description:** Design database and query engine:
-  * Define table schema for processed documents and metadata.
-  * Write SQLite helper functions for insertion and retrieval.
-  * Implement query parsing and match scoring for natural language search.
+* **Description:** Implement the search engine logic including keyword and natural language queries to retrieve documents and metadata, and hook it up to the frontend UI.
 
-### 9. Integration, testing & bug fixes
+### 9. Testing & Bug Fixes
 * **Assignee:** Both (`@dimplekurella`, `@Bhavani25`)
 * **Estimate:** 1 hour (`/estimate 1h`)
 * **Due Date:** 2026-06-28 (`/due 2026-06-28`)
@@ -95,7 +94,7 @@ This document lists the 10 project issues created in GitLab to track progress du
   * Debug and resolve data flow and interface issues.
   * Verify that indexing and search work entirely offline with Wi-Fi disabled.
 
-### 10. Documentation, CI checks & final demo
+### 10. Final Integration & Documentation
 * **Assignee:** Both (`@dimplekurella`, `@Bhavani25`)
 * **Estimate:** 1 hour (`/estimate 1h`)
 * **Due Date:** 2026-06-28 (`/due 2026-06-28`)
