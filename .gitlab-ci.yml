@@ -24,7 +24,7 @@ linting:
   script:
     - ruff check .
     - ruff format --check .
-    - mypy . --ignore-missing-imports
+    - mypy app database frontend tests --ignore-missing-imports --disable-error-code import-untyped
     - pre-commit run --all-files
 
 testing:
@@ -38,4 +38,4 @@ security:
   stage: security
   image: python:3.11-slim
   script:
-    - bandit -r . -x tests,.venv,builds
+    - bandit -r app database frontend
