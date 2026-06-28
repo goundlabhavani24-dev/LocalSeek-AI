@@ -21,9 +21,13 @@ searchable knowledge using completely offline AI.
 
     st.divider()
 
+    from database.db_manager import DBManager
+    db = DBManager()
+    total_docs = len(db.search_documents(""))
+
     c1, c2, c3, c4 = st.columns(4)
 
-    c1.metric("📄 Documents", "0")
+    c1.metric("📄 Documents", str(total_docs))
     c2.metric("🤖 AI Model", "Llama 3.2")
     c3.metric("💾 Database", "SQLite")
     c4.metric("🌐 Mode", "Offline")

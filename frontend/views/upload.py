@@ -3,10 +3,7 @@ import os
 from pathlib import Path
 
 # Backend imports
-from app.pdf_parser import extract_text_from_pdf
-from app.ocr_engine import extract_text_from_image
-from app.llm_client import OllamaClient
-from database.db_manager import DBManager
+from app.pipeline import DocumentPipeline
 
 
 def show():
@@ -16,7 +13,7 @@ def show():
 
     uploaded_file = st.file_uploader(
         "Choose a file",
-        type=["pdf", "png", "jpg", "jpeg"]
+        type=["pdf", "png", "jpg", "jpeg", "txt"]
     )
 
     if uploaded_file:
@@ -33,37 +30,30 @@ def show():
             with open(file_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
 
-            st.info("Extracting text...")
-
-            # Extract text
-            if uploaded_file.name.endswith(".pdf"):
-                text = extract_text_from_pdf(file_path)
+            pipeline = DocumentPipeline()
+            
+            with st.spinner("Processing document through offline AI pipeline..."):
+                res = pipeline.process_file(file_path)
+                
+            if res["status"] == "error":
+                st.error(f"❌ Processing failed: {res['error']}")
             else:
-                text = extract_text_from_image(file_path)
-
-            st.success("Text extraction completed.")
-
-            st.info("Connecting to Local Llama 3.2...")
-
-            llm = OllamaClient()
-
-            metadata = llm.extract_metadata(text)
-
-            db = DBManager()
-
-            doc_id = db.index_document(
-                file_path,
-                text,
-                metadata
-            )
-
-            st.success("Document processed successfully!")
-
-            st.subheader("Extracted Metadata")
-
-            st.json(metadata)
-
-            st.success(f"Document ID: {doc_id}")
+                doc = res["document"]
+                if res["status"] == "cached":
+                    st.warning("⚠️ This document was already processed and retrieved from local cache!")
+                else:
+                    st.success("🚀 Document processed and indexed successfully!")
+                
+                st.subheader("Extracted Metadata")
+                st.json({
+                    "document_type": doc["document_type"],
+                    "title": doc["title"],
+                    "tags": doc["tags"],
+                    "summary": doc["summary"],
+                    "metadata": doc["metadata"]
+                })
+                
+                st.success(f"Document ID: {doc['id']}")
             st.divider()
 
 st.caption(
