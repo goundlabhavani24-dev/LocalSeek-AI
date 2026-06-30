@@ -63,5 +63,3 @@ deploy_production:
   environment:
     name: production
     url: https://localseek-ai-bckweksz55hrxkinzt3abt.streamlit.app
-  only:
-    - main
