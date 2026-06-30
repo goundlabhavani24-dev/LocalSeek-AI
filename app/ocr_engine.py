@@ -34,4 +34,10 @@ def extract_text_from_image(file_path: str) -> str:
         text = pytesseract.image_to_string(img_gray)
         return text.strip()
     except Exception as e:
-        raise RuntimeError(f"Failed to perform OCR on image {file_path}: {e}")
+        error_msg = str(e).lower()
+        if "tesseract" in error_msg or "not found" in error_msg or "path" in error_msg:
+            return (
+                "[OCR text extraction was skipped because Tesseract OCR is not installed "
+                "locally on this machine. Please install Tesseract to parse scanned image content offline.]"
+            )
+        return f"[Image OCR parsing failed: {e}]"

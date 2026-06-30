@@ -203,3 +203,58 @@ def test_pipeline(temp_pdf):
     finally:
         if os.path.exists(db_path):
             os.remove(db_path)
+
+
+def test_heuristic_fallback_invoice():
+    client = OllamaClient()
+    invoice_text = """
+    ABC Electronics Store
+    Invoice Number: INV-2026-001
+    Date: 2026-06-30
+
+    Item 1: USB Cable - $15.00
+    Item 2: Keyboard - $45.00
+
+    Subtotal: $60.00
+    Tax: $5.00
+    Total Amount: 65.00
+    """
+    res = client._extract_metadata_heuristically(invoice_text)
+    assert res["document_type"] == "Invoice"
+    assert res["metadata"]["total_amount"] == 65.00
+    assert res["metadata"]["date"] == "2026-06-30"
+    assert res["metadata"]["vendor"] == "ABC Electronics Store"
+
+
+def test_heuristic_fallback_resume():
+    client = OllamaClient()
+    resume_text = """
+    John Smith
+    smith@email.com | 123-456-7890
+
+    Professional Summary:
+    Python Developer with experience in web apps and machine learning.
+
+    Skills:
+    Python, Javascript, React, SQL, PyTorch
+
+    Experience:
+    Software Engineer at TechCorp (2024-Present)
+    """
+    res = client._extract_metadata_heuristically(resume_text)
+    assert res["document_type"] == "Resume"
+    assert res["metadata"]["applicant_name"] == "John Smith"
+    assert res["metadata"]["contact_email"] == "smith@email.com"
+    assert "python" in res["metadata"]["key_skills"]
+
+
+def test_ocr_missing_fallback(monkeypatch, temp_image):
+    import pytesseract
+
+    def mock_ocr(img):
+        raise pytesseract.TesseractNotFoundError("tesseract is not installed")
+
+    monkeypatch.setattr(pytesseract, "image_to_string", mock_ocr)
+
+    text = extract_text_from_image(temp_image)
+    assert "Tesseract OCR is not installed" in text

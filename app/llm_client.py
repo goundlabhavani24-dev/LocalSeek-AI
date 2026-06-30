@@ -47,6 +47,191 @@ class OllamaClient:
             print(f"Failed to check/pull model {self.model}: {e}")
             return False
 
+    def _extract_metadata_heuristically(self, text: str) -> dict:
+        """
+        Fallback parser that extracts metadata using rule-based heuristics and regex
+        when the local Ollama LLM is unavailable.
+        """
+        import re
+
+        text_lower = text.lower()
+
+        # 1. Document Type Classification
+        invoice_keywords = [
+            "invoice",
+            "receipt",
+            "bill",
+            "amount due",
+            "total due",
+            "payment due",
+            "subtotal",
+            "tax",
+            "gst",
+            "vat",
+            "invoice number",
+            "qty",
+            "quantity",
+            "billing",
+        ]
+        resume_keywords = [
+            "resume",
+            "curriculum vitae",
+            "cv",
+            "experience",
+            "education",
+            "skills",
+            "projects",
+            "employment",
+            "professional summary",
+            "languages",
+            "certification",
+            "contact",
+            "phone",
+            "email",
+        ]
+        medical_keywords = [
+            "patient",
+            "blood report",
+            "medical",
+            "diagnosis",
+            "doctor",
+            "lab test",
+            "hemoglobin",
+            "glucose",
+            "cholesterol",
+            "platelets",
+            "clinical",
+            "hospital",
+            "prescription",
+            "urine test",
+            "blood test",
+        ]
+        certificate_keywords = [
+            "certificate",
+            "certify",
+            "awarded to",
+            "completion",
+            "achievement",
+            "participation",
+            "certified",
+            "presents this",
+            "successfully completed",
+        ]
+
+        # Score document types
+        scores = {
+            "Invoice": sum(1 for kw in invoice_keywords if kw in text_lower),
+            "Resume": sum(1 for kw in resume_keywords if kw in text_lower),
+            "Medical": sum(1 for kw in medical_keywords if kw in text_lower),
+            "Certificate": sum(1 for kw in certificate_keywords if kw in text_lower),
+        }
+
+        # Determine dominant type
+        max_score_type = max(scores, key=lambda k: scores[k])
+        doc_type = max_score_type if scores[max_score_type] > 0 else "Notes"
+
+        # 2. Title Extraction
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        title = "Untitled Document"
+        if lines:
+            first_line = lines[0]
+            if len(first_line) < 100:
+                title = first_line
+
+        # 3. Tag Extraction
+        tags = []
+        common_tags = {
+            "python": ["python"],
+            "javascript": ["javascript", "js"],
+            "react": ["react"],
+            "sql": ["sql", "sqlite", "mysql", "postgres"],
+            "pytorch": ["pytorch"],
+            "invoice": ["invoice", "bill", "receipt"],
+            "payment": ["payment", "due"],
+            "medical": ["medical", "health", "clinical"],
+            "blood": ["blood"],
+            "certificate": ["certificate", "completion", "award"],
+            "notes": ["meeting", "lecture", "memo"],
+        }
+        for tag_name, synonyms in common_tags.items():
+            if any(syn in text_lower for syn in synonyms):
+                tags.append(tag_name)
+
+        if not tags:
+            tags.append(doc_type.lower())
+
+        # 4. Summary & Specific Metadata Extraction
+        summary = f"A local {doc_type} document."
+        metadata = {}
+
+        # Regex helpers
+        email_pattern = r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+        date_pattern = r"\b(?:\d{4}-\d{2}-\d{2}|\d{2}/\d{2}/\d{4}|\d{2}-\d{2}-\d{4})\b"
+        amount_pattern = (
+            r"(?:total|amount|due|price|net)[:\s]*(?:\$|rs\.?|€|£)?\s*(\d+(?:\.\d{2})?)"
+        )
+
+        if doc_type == "Invoice":
+            summary = "An invoice or billing document extracted offline."
+            dates = re.findall(date_pattern, text)
+            if dates:
+                metadata["date"] = dates[0]
+            amounts = re.findall(amount_pattern, text_lower)
+            if amounts:
+                try:
+                    float_amounts = [float(a) for a in amounts]
+                    metadata["total_amount"] = max(float_amounts)
+                except ValueError:
+                    pass
+            if len(lines) > 0:
+                metadata["vendor"] = lines[0]
+
+        elif doc_type == "Resume":
+            summary = "A professional resume or CV document parsed offline."
+            emails = re.findall(email_pattern, text)
+            if emails:
+                metadata["contact_email"] = emails[0]
+            if len(lines) > 0:
+                metadata["applicant_name"] = lines[0]
+            skills = [
+                t
+                for t in tags
+                if t in ["python", "javascript", "react", "sql", "pytorch"]
+            ]
+            if skills:
+                metadata["key_skills"] = skills
+
+        elif doc_type == "Medical":
+            summary = "A medical report or lab test result analyzed offline."
+            dates = re.findall(date_pattern, text)
+            if dates:
+                metadata["date"] = dates[0]
+            patient_match = re.search(
+                r"patient\s*(?:name)?[:\s]+([a-zA-Z\s]+)", text, re.IGNORECASE
+            )
+            if patient_match:
+                metadata["patient_name"] = patient_match.group(1).strip()
+
+        elif doc_type == "Certificate":
+            summary = "A certificate document recognizing achievement or completion."
+            awarded_match = re.search(
+                r"(?:awarded|presented)\s+to\s+([a-zA-Z\s]+)", text, re.IGNORECASE
+            )
+            if awarded_match:
+                metadata["recipient"] = awarded_match.group(1).strip()
+
+        else:
+            doc_type = "Notes"
+            summary = "Personal notes or a general text document."
+
+        return {
+            "document_type": doc_type,
+            "title": title,
+            "tags": tags,
+            "summary": summary,
+            "metadata": metadata,
+        }
+
     def extract_metadata(self, document_text: str) -> dict:
         """
         Prompt Llama 3.2 to extract structured JSON metadata from the raw text.
@@ -94,20 +279,15 @@ Return ONLY the JSON object. Do not include any markdown fences or conversationa
             },
         }
 
-        fallback_data = {
-            "document_type": "Other",
-            "title": "Untitled Document",
-            "tags": ["unclassified"],
-            "summary": "Document content could not be parsed by local LLM.",
-            "metadata": {},
-        }
-
         if not self.check_connection():
-            print("Ollama connection failed. Returning default metadata.")
-            fallback_data["summary"] = (
-                "Ollama service is not running locally. Please start Ollama."
+            print(
+                "Ollama connection failed. Performing local rule-based heuristic extraction."
             )
-            return fallback_data
+            heuristics = self._extract_metadata_heuristically(document_text)
+            heuristics["summary"] += (
+                " (Note: Extracted offline using local heuristic parser; Ollama service was unavailable)"
+            )
+            return heuristics
 
         try:
             response = requests.post(
@@ -132,8 +312,12 @@ Return ONLY the JSON object. Do not include any markdown fences or conversationa
                 }
                 return validated_json
             else:
-                print(f"Ollama API returned status code {response.status_code}")
-                return fallback_data
+                print(
+                    f"Ollama API returned status code {response.status_code}. Performing local heuristic extraction."
+                )
+                return self._extract_metadata_heuristically(document_text)
         except Exception as e:
-            print(f"Error during Ollama inference: {e}")
-            return fallback_data
+            print(
+                f"Error during Ollama inference: {e}. Performing local heuristic extraction."
+            )
+            return self._extract_metadata_heuristically(document_text)
