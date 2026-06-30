@@ -39,3 +39,16 @@ security:
   image: python:3.11-slim
   script:
     - bandit -r app database frontend
+
+secret_scan:
+  stage: security
+  image: zricethezav/gitleaks:latest
+  script:
+    - gitleaks detect --source . --no-git
+
+dependency_audit:
+  stage: security
+  image: python:3.11-slim
+  script:
+    - pip install pip-audit
+    - pip-audit --progress-spinner off
