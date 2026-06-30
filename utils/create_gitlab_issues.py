@@ -105,12 +105,12 @@ def get_existing_issues():
     url = f"{GITLAB_URL}/projects/{PROJECT_ID}/issues"
     response = requests.get(url, headers=HEADERS, timeout=10)
     if response.status_code == 200:
-        return [issue["title"] for issue in response.json()]
+        return {issue["title"]: issue["iid"] for issue in response.json()}
     else:
         print(
             f"Failed to fetch existing issues: {response.status_code} {response.text}"
         )
-        return []
+        return {}
 
 
 def create_issue(issue_info):
@@ -148,15 +148,17 @@ def set_estimate(issue_iid, duration):
 
 
 def main():
-    print("Fetching existing issues to prevent duplicates...")
+    print("Fetching existing issues to check for updates...")
     existing = get_existing_issues()
-    if not existing and len(HEADERS["PRIVATE-TOKEN"]) > 0:
-        # Check if auth failed
-        pass
 
     for issue in issues_data:
-        if issue["title"] in existing:
-            print(f"Skipping issue: '{issue['title']}' (already exists)")
+        title = issue["title"]
+        if title in existing:
+            iid = existing[title]
+            print(
+                f"Issue '{title}' already exists (IID: {iid}). Setting/updating estimate..."
+            )
+            set_estimate(iid, issue["estimate"])
             continue
 
         iid = create_issue(issue)
