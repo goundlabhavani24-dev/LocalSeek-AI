@@ -2,6 +2,7 @@ stages:
   - lint
   - test
   - security
+  - deploy
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
@@ -52,3 +53,15 @@ dependency_audit:
   script:
     - pip install pip-audit
     - pip-audit --progress-spinner off
+
+deploy_production:
+  stage: deploy
+  image: alpine:latest
+  before_script: []
+  script:
+    - echo "Registering deployment to production environment"
+  environment:
+    name: production
+    url: https://localseek-ai-bckweksz55hrxkinzt3abt.streamlit.app
+  only:
+    - main
